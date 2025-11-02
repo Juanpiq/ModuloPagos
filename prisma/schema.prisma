@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model clientes {
+  id             Int        @id @default(autoincrement())
+  nombre         String     @db.VarChar(100)
+  telefono       String?    @db.VarChar(20)
+  email          String?    @db.VarChar(100)
+  direccion      String?
+  fecha_registro DateTime?  @default(now()) @db.Timestamp(6)
+  facturas       facturas[]
+}
+
+model estados_factura {
+  id       Int        @id @default(autoincrement())
+  nombre   String     @unique @db.VarChar(50)
+  facturas facturas[]
+}
+
+model estados_pago {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique @db.VarChar(50)
+  pagos  pagos[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model facturas {
+  id                Int              @id @default(autoincrement())
+  cliente_id        Int
+  monto_total       Decimal?         @db.Decimal(10, 2)
+  balance_restante  Decimal?         @db.Decimal(10, 2)
+  estado_factura_id Int?
+  clientes          clientes         @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  estados_factura   estados_factura? @relation(fields: [estado_factura_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pagos             pagos[]
+}
+
+model metodos_pago {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique @db.VarChar(50)
+  pagos  pagos[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pagos {
+  id             Int           @id @default(autoincrement())
+  factura_id     Int
+  monto          Decimal?      @db.Decimal(10, 2)
+  estado_pago_id Int?
+  metodo_pago_id Int?
+  archivo        Bytes?
+  fecha          DateTime?     @default(now()) @db.Timestamp(6)
+  estados_pago   estados_pago? @relation(fields: [estado_pago_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  facturas       facturas      @relation(fields: [factura_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  metodos_pago   metodos_pago? @relation(fields: [metodo_pago_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model roles {
+  id       Int        @id @default(autoincrement())
+  nombre   String     @unique @db.VarChar(50)
+  usuarios usuarios[]
+}
+
+model usuarios {
+  id            Int    @id @default(autoincrement())
+  nombre        String @db.VarChar(100)
+  username      String @unique @db.VarChar(50)
+  password_hash String @db.VarChar(255)
+  rol_id        Int?
+  roles         roles? @relation(fields: [rol_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
