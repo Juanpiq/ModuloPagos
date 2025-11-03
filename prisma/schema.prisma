@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -37,6 +37,7 @@ model facturas {
   monto_total       Decimal?         @db.Decimal(10, 2)
   balance_restante  Decimal?         @db.Decimal(10, 2)
   estado_factura_id Int?
+  actividad         String           @default("Suministros") @db.VarChar(150)
   clientes          clientes         @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   estados_factura   estados_factura? @relation(fields: [estado_factura_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pagos             pagos[]
