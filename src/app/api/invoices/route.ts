@@ -3,17 +3,17 @@ import { NextResponse } from 'next/server';
 import { z, ZodError } from 'zod';
 import { InvoiceResponse } from '@/types/invoices';
 
+// Validación Zod
 const invoiceSchema = z.object({
   clienteId: z.number().positive('El clienteId debe ser un número positivo'),
   montoTotal: z.number().positive('El montoTotal debe ser mayor que 0'),
-  balanceRestante: z.number().nonnegative('El balanceRestante no puede ser negativo'),
   estadoFacturaId: z.number().optional(),
   actividad: z.string().min(3, 'La actividad debe tener al menos 3 caracteres'),
 });
 
 type InvoiceRequest = z.infer<typeof invoiceSchema>;
 
-//GET
+// ✅ GET
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     const facturasDB = await prisma.facturas.findMany({
       where: estado ? { estados_factura: { nombre: estado } } : {},
       include: {
-        clientes: { select: { nombre: true } },
+        clientes: { select: { id: true, nombre: true } },
         estados_factura: { select: { nombre: true } },
       },
       orderBy: { id: 'asc' },
@@ -30,6 +30,7 @@ export async function GET(req: Request) {
 
     const facturas: InvoiceResponse[] = facturasDB.map((f) => ({
       id: f.id,
+      clienteId: f.clientes?.id ?? 0,
       cliente: f.clientes?.nombre ?? 'Sin cliente',
       montoTotal: Number(f.monto_total),
       balanceRestante: Number(f.balance_restante),
@@ -47,19 +48,19 @@ export async function GET(req: Request) {
   }
 }
 
-//POST
+// POST: Crear una nueva factura
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const parsed: InvoiceRequest = invoiceSchema.parse(body);
+    const parsed = invoiceSchema.parse(body);
 
     await prisma.facturas.create({
       data: {
         cliente_id: parsed.clienteId,
         monto_total: parsed.montoTotal,
-        balance_restante: parsed.balanceRestante,
-        estado_factura_id: parsed.estadoFacturaId ?? null,
+        // balance_restante lo maneja la DB
+        // estado_factura_id puede tener un valor por defecto (Pendiente)
         actividad: parsed.actividad,
       },
     });
