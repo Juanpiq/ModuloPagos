@@ -12,4 +12,5 @@ export interface InvoiceResponse {
   balanceRestante: number;
   estado?: string;
   actividad: string;
+  fecha: string;
 }

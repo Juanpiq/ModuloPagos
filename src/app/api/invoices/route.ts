@@ -1,28 +1,80 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { z, ZodError } from 'zod';
-import { InvoiceResponse } from '@/types/invoices';
+import type { InvoiceResponse } from '@/types/invoices';
 
-// Validación Zod
+// ✅ Esquema de validación para crear facturas
 const invoiceSchema = z.object({
   clienteId: z.number().positive('El clienteId debe ser un número positivo'),
   montoTotal: z.number().positive('El montoTotal debe ser mayor que 0'),
-  estadoFacturaId: z.number().optional(),
   actividad: z.string().min(3, 'La actividad debe tener al menos 3 caracteres'),
 });
 
 type InvoiceRequest = z.infer<typeof invoiceSchema>;
 
-// ✅ GET
+/**
+ * GET: Obtiene facturas
+ */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const estado = searchParams.get('estado'); // filtro opcional
 
+    const id = searchParams.get('id');
+    const estado = searchParams.get('estado');
+    const clienteId = searchParams.get('clienteId');
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    // 🔹 Si se busca una factura específica
+    if (id) {
+      const factura = await prisma.facturas.findUnique({
+        where: { id: Number(id) },
+        include: {
+          clientes: { select: { nombre: true } },
+          estados_factura: { select: { nombre: true } },
+        },
+      });
+
+      if (!factura)
+        return NextResponse.json({ message: 'Factura no encontrada' }, { status: 404 });
+
+      const facturaResponse: InvoiceResponse = {
+        id: factura.id,
+        clienteId: factura.cliente_id,
+        cliente: factura.clientes?.nombre ?? 'Sin cliente',
+        montoTotal: Number(factura.monto_total),
+        balanceRestante: Number(factura.balance_restante),
+        estado: factura.estados_factura?.nombre ?? 'Desconocido',
+        actividad: factura.actividad,
+        fecha: factura.fecha?.toISOString() ?? '',
+      };
+
+      return NextResponse.json(facturaResponse, { status: 200 });
+    }
+
+    // 🔹 Filtros combinados (clienteId, estado, rango de fechas)
+    const where: any = {};
+
+    if (clienteId) {
+      where.cliente_id = Number(clienteId);
+    }
+
+    if (estado) {
+      where.estados_factura = { nombre: estado };
+    }
+
+    if (from && to) {
+      where.fecha = {
+        gte: new Date(from),
+        lte: new Date(to),
+      };
+    }
+
+    // Obtener facturas con filtros aplicados
     const facturasDB = await prisma.facturas.findMany({
-      where: estado ? { estados_factura: { nombre: estado } } : {},
+      where,
       include: {
-        clientes: { select: { id: true, nombre: true } },
+        clientes: { select: { nombre: true } },
         estados_factura: { select: { nombre: true } },
       },
       orderBy: { id: 'asc' },
@@ -30,12 +82,13 @@ export async function GET(req: Request) {
 
     const facturas: InvoiceResponse[] = facturasDB.map((f) => ({
       id: f.id,
-      clienteId: f.clientes?.id ?? 0,
+      clienteId: f.cliente_id,
       cliente: f.clientes?.nombre ?? 'Sin cliente',
       montoTotal: Number(f.monto_total),
       balanceRestante: Number(f.balance_restante),
       estado: f.estados_factura?.nombre ?? 'Desconocido',
       actividad: f.actividad,
+      fecha: f.fecha?.toISOString() ?? '',
     }));
 
     return NextResponse.json(facturas, { status: 200 });
@@ -48,19 +101,16 @@ export async function GET(req: Request) {
   }
 }
 
-// POST: Crear una nueva factura
+//POST
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
     const parsed = invoiceSchema.parse(body);
 
     await prisma.facturas.create({
       data: {
         cliente_id: parsed.clienteId,
         monto_total: parsed.montoTotal,
-        // balance_restante lo maneja la DB
-        // estado_factura_id puede tener un valor por defecto (Pendiente)
         actividad: parsed.actividad,
       },
     });

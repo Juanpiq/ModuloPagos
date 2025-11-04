@@ -38,6 +38,7 @@ model facturas {
   balance_restante  Decimal?         @db.Decimal(10, 2)
   estado_factura_id Int?
   actividad         String           @default("Suministros") @db.VarChar(150)
+  fecha             DateTime         @default(now()) @db.Timestamp(6)
   clientes          clientes         @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   estados_factura   estados_factura? @relation(fields: [estado_factura_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pagos             pagos[]
