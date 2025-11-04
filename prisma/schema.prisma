@@ -58,6 +58,7 @@ model pagos {
   metodo_pago_id Int?
   archivo        Bytes?
   fecha          DateTime?     @default(now()) @db.Timestamp(6)
+  archivo_nombre String?       @db.VarChar(100)
   estados_pago   estados_pago? @relation(fields: [estado_pago_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   facturas       facturas      @relation(fields: [factura_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   metodos_pago   metodos_pago? @relation(fields: [metodo_pago_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
