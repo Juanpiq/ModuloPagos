@@ -44,6 +44,16 @@ export default function InvoiceDetailsDialog({
             <p><strong>Balance Restante:</strong> ${invoice.balanceRestante}</p>
             <p><strong>Actividad:</strong> {invoice.actividad}</p>
             <p><strong>Estado:</strong> {invoice.estado}</p>
+            <p>
+              <strong>Fecha de creación:</strong>{' '}
+              {invoice.fecha
+                ? new Date(invoice.fecha).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                : '—'}
+            </p>
           </div>
         ) : (
           <p>No se encontró la factura.</p>

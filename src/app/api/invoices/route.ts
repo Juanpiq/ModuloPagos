@@ -51,8 +51,6 @@ export async function GET(req: Request) {
 
       return NextResponse.json(facturaResponse, { status: 200 });
     }
-
-    // 🔹 Filtros combinados (clienteId, estado, rango de fechas)
     const where: any = {};
 
     if (clienteId) {
@@ -64,11 +62,21 @@ export async function GET(req: Request) {
     }
 
     if (from && to) {
+      const [fy, fm, fd] = from.split('-').map((s) => Number(s));
+      const [ty, tm, td] = to.split('-').map((s) => Number(s));
+
+      const startDate = new Date(fy, fm - 1, fd, 0, 0, 0, 0);
+
+      const endExclusive = new Date(ty, tm - 1, td, 0, 0, 0, 0);
+      endExclusive.setDate(endExclusive.getDate() + 1);
+
       where.fecha = {
-        gte: new Date(from),
-        lte: new Date(to),
+        gte: startDate,
+        lt: endExclusive,
       };
     }
+
+
 
     // Obtener facturas con filtros aplicados
     const facturasDB = await prisma.facturas.findMany({
