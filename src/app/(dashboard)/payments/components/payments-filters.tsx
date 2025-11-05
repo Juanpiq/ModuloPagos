@@ -3,55 +3,55 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, FunnelIcon } from 'lucide-react';
+import { CalendarIcon, FunnelIcon, XCircleIcon } from 'lucide-react';
 
 type Props = { onFilterChange: (f: Record<string, string | null>) => void };
 
 export function PaymentsFilters({ onFilterChange }: Props) {
-  const [invoiceId, setInvoiceId] = useState('');
-  const [estado, setEstado] = useState('all');
-  const [range, setRange] = useState<{ from: Date | null; to: Date | null }>({
-    from: null,
-    to: null,
-  });
+  const [invoiceId, setInvoiceId] = useState<string>('');
+  const [estado, setEstado] = useState<string>('all');
+  const [range, setRange] = useState<{ from: Date | null; to: Date | null }>({ from: null, to: null });
 
+  //Aplica filtros
   const apply = () => {
-    const adjustedTo = range.to ? addDays(range.to, 1) : null;
-
     onFilterChange({
       facturaId: invoiceId || null,
-      estado: estado !== 'all' ? estado : null,
+      estado: estado === 'all' ? null : estado,
       from: range.from ? range.from.toISOString().split('T')[0] : null,
-      to: adjustedTo ? adjustedTo.toISOString().split('T')[0] : null,
+      to: range.to ? range.to.toISOString().split('T')[0] : null,
     });
   };
 
+  //Limpia filtros
+  const clear = () => {
+    setInvoiceId('');
+    setEstado('all');
+    setRange({ from: null, to: null });
+    onFilterChange({ facturaId: null, estado: null, from: null, to: null });
+  };
+
   return (
-    <div className="flex flex-wrap items-end gap-4 border p-4 rounded-lg bg-white shadow-sm">
+    <div className="flex flex-wrap items-end gap-3 border p-3 rounded-lg bg-white shadow-sm">
+      {/*ID Factura */}
       <div className="flex flex-col">
         <label className="text-sm font-medium text-gray-600">ID Factura</label>
         <Input
-          placeholder="Ej: 10"
+          placeholder="ID factura"
           value={invoiceId}
           onChange={(e) => setInvoiceId(e.target.value)}
           className="w-40"
         />
       </div>
 
+      {/*Estado */}
       <div className="flex flex-col">
         <label className="text-sm font-medium text-gray-600">Estado</label>
-        <Select onValueChange={setEstado} value={estado}>
+        <Select value={estado} onValueChange={setEstado}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Todos" />
           </SelectTrigger>
@@ -64,18 +64,15 @@ export function PaymentsFilters({ onFilterChange }: Props) {
         </Select>
       </div>
 
+      {/*Rango de fechas */}
       <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-600">Rango de fechas</label>
+        <label className="text-sm font-medium text-gray-600">Fecha</label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               <CalendarIcon className="w-4 h-4" />
               {range.from && range.to
-                ? `${format(range.from, 'dd MMM yyyy', { locale: es })} - ${format(
-                    range.to,
-                    'dd MMM yyyy',
-                    { locale: es }
-                  )}`
+                ? `${format(range.from, 'dd MMM yyyy', { locale: es })} - ${format(range.to, 'dd MMM yyyy', { locale: es })}`
                 : 'Seleccionar rango'}
             </Button>
           </PopoverTrigger>
@@ -91,9 +88,15 @@ export function PaymentsFilters({ onFilterChange }: Props) {
         </Popover>
       </div>
 
-      <Button className="ml-auto bg-blue-600 hover:bg-blue-700" onClick={apply}>
-        <FunnelIcon className="w-4 h-4 mr-2" /> Aplicar filtros
-      </Button>
+      {/* Botones */}
+      <div className="flex gap-2 ml-auto">
+        <Button className="bg-blue-600 hover:bg-blue-700" onClick={apply}>
+          <FunnelIcon className="w-4 h-4 mr-2" /> Aplicar
+        </Button>
+        <Button variant="outline" onClick={clear}>
+          <XCircleIcon className="w-4 h-4 mr-2 text-gray-600" /> Limpiar
+        </Button>
+      </div>
     </div>
   );
 }

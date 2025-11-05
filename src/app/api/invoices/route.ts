@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { z, ZodError } from 'zod';
 import type { InvoiceResponse } from '@/types/invoices';
 
-//Esquema de validación para crear facturas
 const invoiceSchema = z.object({
   clienteId: z.number().positive('El clienteId debe ser un número positivo'),
   montoTotal: z.number().positive('El montoTotal debe ser mayor que 0'),

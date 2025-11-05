@@ -14,6 +14,7 @@ type Props = {
 export default function PaymentDetailsDialog({ id, open, onClose }: Props) {
   const [data, setData] = useState<PaymentResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -34,6 +35,41 @@ export default function PaymentDetailsDialog({ id, open, onClose }: Props) {
     })();
   }, [open, id]);
 
+  const formatFecha = (fechaISO: string) => {
+    const fecha = new Date(fechaISO);
+    return fecha.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const handleDownload = async (id: number, nombre: string) => {
+    try {
+      setDownloading(true);
+      const res = await fetch(`/api/payments/download/${id}/attachment`);
+      if (!res.ok) throw new Error('Error al descargar archivo');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', nombre);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Error al descargar el archivo');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -51,13 +87,21 @@ export default function PaymentDetailsDialog({ id, open, onClose }: Props) {
             <p><Label className="font-medium">Monto:</Label> ${data.monto.toFixed(2)}</p>
             <p><Label className="font-medium">Método:</Label> {data.metodoPago}</p>
             <p><Label className="font-medium">Estado:</Label> {data.estado}</p>
-            <p><Label className="font-medium">Fecha:</Label> {data.fecha ? new Date(data.fecha).toLocaleString('es-ES') : '—'}</p>
+            <p>
+              <Label className="font-medium">Fecha:</Label>{' '}
+              {data.fecha ? formatFecha(data.fecha) : '—'}
+            </p>
+
             {data.archivoNombre && (
               <p>
                 <Label className="font-medium">Archivo:</Label>{' '}
-                <a href={`/api/payments/download/${data.id}/attachment`} target="_blank" className="text-blue-600 hover:underline">
-                  {data.archivoNombre}
-                </a>
+                <button
+                  onClick={() => handleDownload(data.id, data.archivoNombre)}
+                  disabled={downloading}
+                  className={`text-blue-600 hover:underline ${downloading ? 'opacity-60' : ''}`}
+                >
+                  {downloading ? 'Descargando...' : `${data.archivoNombre}`}
+                </button>
               </p>
             )}
           </div>

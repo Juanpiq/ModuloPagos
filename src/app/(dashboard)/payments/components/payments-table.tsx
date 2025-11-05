@@ -18,13 +18,23 @@ export default function PaymentsTable({
   onViewDetails,
   onStatusChange,
 }: Props) {
-  const handleDownload = async (id: number) => {
+  const handleDownload = async (id: number, nombre: string) => {
     try {
       const res = await fetch(`/api/payments/download/${id}/attachment`);
-      if (!res.ok) return alert('Error al descargar archivo');
+      if (!res.ok) throw new Error('Error al descargar archivo');
+
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', nombre);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
       alert('Error al descargar archivo');
@@ -62,7 +72,7 @@ export default function PaymentsTable({
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
-      {/* Desktop*/}
+      {/* Desktop */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
         <table className="min-w-full border-collapse text-sm text-gray-800">
           <thead className="bg-gray-100 text-center">
@@ -91,12 +101,8 @@ export default function PaymentsTable({
                 <td className="p-3 font-medium">${p.monto.toFixed(2)}</td>
                 <td className="p-3">{p.metodoPago}</td>
                 <td className="p-3">
-                  {/* Select inline para cambiar estado */}
                   <div className="inline-block">
-                    <Select
-                      value={p.estado}
-                      onValueChange={(v) => onStatusChange(p.id, v)}
-                    >
+                    <Select value={p.estado} onValueChange={(v) => onStatusChange(p.id, v)}>
                       <SelectTrigger className={`text-xs font-semibold ${estadoColor(p.estado)} px-3 py-1 rounded-full`}>
                         <SelectValue />
                       </SelectTrigger>
@@ -110,7 +116,10 @@ export default function PaymentsTable({
                 </td>
                 <td className="p-3">
                   {p.archivoNombre ? (
-                    <button onClick={() => handleDownload(p.id)} className="text-blue-600 hover:underline">
+                    <button
+                      onClick={() => handleDownload(p.id, p.archivoNombre)}
+                      className="text-blue-600 hover:underline"
+                    >
                       {p.archivoNombre}
                     </button>
                   ) : (
@@ -136,7 +145,7 @@ export default function PaymentsTable({
         </table>
       </div>
 
-      {/* Mobile*/}
+      {/* Mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
         {payments.map((p) => (
           <div
@@ -163,7 +172,10 @@ export default function PaymentsTable({
 
             <div className="flex items-center justify-between gap-2">
               {p.archivoNombre ? (
-                <button onClick={() => handleDownload(p.id)} className="text-blue-600 hover:underline text-sm">
+                <button
+                  onClick={() => handleDownload(p.id, p.archivoNombre)}
+                  className="text-blue-600 hover:underline text-sm"
+                >
                   {p.archivoNombre}
                 </button>
               ) : (

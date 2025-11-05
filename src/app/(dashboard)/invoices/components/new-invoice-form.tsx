@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-// ✅ Esquema Zod (solo los 3 campos requeridos)
 const invoiceSchema = z.object({
   clienteId: z.preprocess(
     (val) => Number(val),
@@ -57,17 +56,17 @@ export default function InvoiceForm({ onCreated }: { onCreated: () => void }) {
       });
 
       if (res.ok) {
-        toast.success('Factura creada exitosamente ✅');
+        toast.success('Factura creada exitosamente');
         reset();
         setOpen(false);
         onCreated();
       } else {
         const body = await res.json();
-        toast.error(body.message || 'Error al crear factura ❌');
+        toast.error(body.message || 'Error al crear factura');
       }
     } catch (err) {
       console.error(err);
-      toast.error('Error de conexión con el servidor ⚠️');
+      toast.error('Error de conexión con el servidor');
     }
   };
 
