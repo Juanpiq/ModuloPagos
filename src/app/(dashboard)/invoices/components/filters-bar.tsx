@@ -40,7 +40,7 @@ export function Filters({ onFilterChange }: FilterProps) {
 
   return (
     <div className="flex flex-wrap items-end gap-4 bg-white border p-4 rounded-lg shadow-sm">
-      {/* 🧍 Cliente ID */}
+      {/* Cliente ID */}
       <div className="flex flex-col w-[160px]">
         <label htmlFor="clienteId" className="text-sm font-medium text-gray-600 mb-1">
           ID Cliente
@@ -55,7 +55,7 @@ export function Filters({ onFilterChange }: FilterProps) {
         />
       </div>
 
-      {/* 📋 Estado */}
+      {/* Estado */}
       <div className="flex flex-col w-[180px]">
         <label className="text-sm font-medium text-gray-600 mb-1">Estado</label>
         <Select onValueChange={setEstado} value={estado ?? ''}>
@@ -70,7 +70,7 @@ export function Filters({ onFilterChange }: FilterProps) {
         </Select>
       </div>
 
-      {/* 📅 Rango de fechas */}
+      {/*Rango de fechas */}
       <div className="flex flex-col w-[240px]">
         <label className="text-sm font-medium text-gray-600 mb-1">Rango de fechas</label>
         <Popover>
@@ -106,7 +106,7 @@ export function Filters({ onFilterChange }: FilterProps) {
         </Popover>
       </div>
 
-      {/* 🎛️ Botones */}
+      {/* Botones */}
       <div className="flex gap-2 ml-auto items-center">
         <Button variant="outline" onClick={clearFilters} className="h-9">
           Limpiar

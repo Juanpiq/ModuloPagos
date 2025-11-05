@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { z, ZodError } from 'zod';
 import type { InvoiceResponse } from '@/types/invoices';
 
-// ✅ Esquema de validación para crear facturas
+//Esquema de validación para crear facturas
 const invoiceSchema = z.object({
   clienteId: z.number().positive('El clienteId debe ser un número positivo'),
   montoTotal: z.number().positive('El montoTotal debe ser mayor que 0'),
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
-    // 🔹 Si se busca una factura específica
+    //factura por id
     if (id) {
       const factura = await prisma.facturas.findUnique({
         where: { id: Number(id) },
@@ -76,9 +76,7 @@ export async function GET(req: Request) {
       };
     }
 
-
-
-    // Obtener facturas con filtros aplicados
+    // Obtener facturas con filtros
     const facturasDB = await prisma.facturas.findMany({
       where,
       include: {

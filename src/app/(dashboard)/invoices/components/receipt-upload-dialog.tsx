@@ -17,14 +17,14 @@ type Props = {
   facturaId: number | null;
   open: boolean;
   onClose: () => void;
-  onUploaded?: () => void; // opcional: callback para refrescar listas
+  onUploaded?: () => void;
 };
 
 export default function ReceiptUploadDialog({ facturaId, open, onClose, onUploaded }: Props) {
   const [balance, setBalance] = useState<number | null>(null);
   const [monto, setMonto] = useState<string>('');
-  const [estadoPagoId, setEstadoPagoId] = useState<string>(''); // '1' En Proceso, '2' Completado, '3' Anulado
-  const [metodoPagoId, setMetodoPagoId] = useState<string>(''); // '1' Efectivo, '2' Transferencia, '3' Tarjeta, '4' Cheque
+  const [estadoPagoId, setEstadoPagoId] = useState<string>('');
+  const [metodoPagoId, setMetodoPagoId] = useState<string>('');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [archivoNombre, setArchivoNombre] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,7 +47,6 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
         const res = await fetch(`/api/invoices?id=${facturaId}`);
         if (!res.ok) throw new Error('No se pudo obtener la factura');
         const data = await res.json();
-        // data.balanceRestante debe venir como número
         setBalance(typeof data.balanceRestante === 'number' ? data.balanceRestante : Number(data.balanceRestante));
       } catch (err) {
         console.error(err);
@@ -114,7 +113,6 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
       return false;
     }
 
-    // Si el pago no es "Anulado", validar que no exceda el balance disponible (si está disponible)
     if (balance !== null && estadoPagoId !== '3') {
       if (m > balance) {
         setError(`El monto no puede ser mayor al balance restante ($${balance.toFixed(2)}).`);
@@ -202,33 +200,39 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
 
           {/* Metodo de pago */}
           <div>
-            <Label>Método de pago</Label>
-            <Select onValueChange={setMetodoPagoId} value={metodoPagoId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar método" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* Si quieres cargar dinámicamente, reemplaza estos items por datos de la API */}
-                <SelectItem value="1">Efectivo</SelectItem>
-                <SelectItem value="2">Transferencia</SelectItem>
-                <SelectItem value="3">Tarjeta</SelectItem>
-                <SelectItem value="4">Cheque</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Label>Método de pago</Label>
+                    <Select
+                        onValueChange={setMetodoPagoId}
+                        value={metodoPagoId || undefined}
+                    >
+                        <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar método" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="1">Efectivo</SelectItem>
+                        <SelectItem value="2">Transferencia</SelectItem>
+                        <SelectItem value="3">Tarjeta</SelectItem>
+                        <SelectItem value="4">Cheque</SelectItem>
+                        </SelectContent>
+                    </Select>
+         </div>
+
 
           {/* Estado del pago */}
           <div>
             <Label>Estado del pago</Label>
-            <Select onValueChange={setEstadoPagoId} value={estadoPagoId}>
-              <SelectTrigger>
+            <Select
+                onValueChange={setEstadoPagoId}
+                value={estadoPagoId || undefined}
+                >
+                <SelectTrigger>
                 <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
+                </SelectTrigger>
+                <SelectContent>
                 <SelectItem value="1">En Proceso</SelectItem>
                 <SelectItem value="2">Completado</SelectItem>
                 <SelectItem value="3">Anulado</SelectItem>
-              </SelectContent>
+                </SelectContent>
             </Select>
           </div>
 
