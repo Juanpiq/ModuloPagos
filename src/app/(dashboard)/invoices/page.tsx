@@ -48,7 +48,7 @@ export default function InvoicesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">📄 Saldos Pendientes</h1>
         <div className="flex gap-2">
-          {/* 🔹 Botón para ir al historial de pagos */}
+          {/*Botón para ir al historial de pagos */}
           <Button
             variant="outline"
             className="flex items-center gap-2"
@@ -57,6 +57,8 @@ export default function InvoicesPage() {
             <CreditCardIcon className="w-4 h-4" />
             Historial de Pagos
           </Button>
+
+          {/*refresca tabla al crear factura*/}
           <InvoiceForm onCreated={() => fetchInvoices(filters)} />
         </div>
       </div>
@@ -64,6 +66,7 @@ export default function InvoicesPage() {
       {/* Barra de filtros */}
       <Filters onFilterChange={(newFilters) => setFilters(newFilters)} />
 
+      {/*Tabla de facturas */}
       <PendingBalancesTable
         balances={invoices}
         onPay={(id) => setSelectedInvoiceForPayment(id)}
@@ -71,11 +74,13 @@ export default function InvoicesPage() {
         isLoading={isLoading}
       />
 
+      {/*Modal para subir comprobante */}
       {selectedInvoiceForPayment && (
         <ReceiptUploadDialog
           facturaId={selectedInvoiceForPayment}
           open={!!selectedInvoiceForPayment}
           onClose={() => setSelectedInvoiceForPayment(null)}
+          onUploaded={() => fetchInvoices(filters)} 
         />
       )}
 

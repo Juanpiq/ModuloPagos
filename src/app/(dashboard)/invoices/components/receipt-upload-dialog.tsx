@@ -12,6 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 type Props = {
   facturaId: number | null;
@@ -30,7 +31,6 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar balance cada vez que se abre el modal
   useEffect(() => {
     setError(null);
     setArchivo(null);
@@ -72,7 +72,7 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
       return;
     }
 
-    const maxBytes = 10 * 1024 * 1024; // 10MB
+    const maxBytes = 10 * 1024 * 1024;
     if (file.size > maxBytes) {
       setError('El archivo supera el tamaño permitido de 10MB.');
       setArchivo(null);
@@ -149,12 +149,19 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
         throw new Error(msg);
       }
 
-      // éxito
+      //Éxito: mostrar notificación
+      toast.success('Pago registrado exitosamente', {
+        description: `El comprobante ${archivoNombre || 'subido'} se ha guardado correctamente.`,
+      });
+
       onClose();
       if (onUploaded) onUploaded();
     } catch (err: any) {
       console.error(err);
       setError(err?.message ?? 'Error al subir la boleta.');
+      toast.error('Error al subir la boleta', {
+        description: err?.message ?? 'Ocurrió un problema al guardar el pago.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +179,6 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Balance actual */}
           <div>
             <Label className="font-medium">Balance restante</Label>
             <div className="mt-1">
@@ -182,7 +188,6 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
             </div>
           </div>
 
-          {/* Monto a pagar */}
           <div>
             <Label htmlFor="monto">Monto a pagar</Label>
             <Input
@@ -198,45 +203,35 @@ export default function ReceiptUploadDialog({ facturaId, open, onClose, onUpload
             />
           </div>
 
-          {/* Metodo de pago */}
           <div>
-                <Label>Método de pago</Label>
-                    <Select
-                        onValueChange={setMetodoPagoId}
-                        value={metodoPagoId || undefined}
-                    >
-                        <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar método" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="1">Efectivo</SelectItem>
-                        <SelectItem value="2">Transferencia</SelectItem>
-                        <SelectItem value="3">Tarjeta</SelectItem>
-                        <SelectItem value="4">Cheque</SelectItem>
-                        </SelectContent>
-                    </Select>
-         </div>
-
-
-          {/* Estado del pago */}
-          <div>
-            <Label>Estado del pago</Label>
-            <Select
-                onValueChange={setEstadoPagoId}
-                value={estadoPagoId || undefined}
-                >
-                <SelectTrigger>
-                <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                <SelectItem value="1">En Proceso</SelectItem>
-                <SelectItem value="2">Completado</SelectItem>
-                <SelectItem value="3">Anulado</SelectItem>
-                </SelectContent>
+            <Label>Método de pago</Label>
+            <Select onValueChange={setMetodoPagoId} value={metodoPagoId || undefined}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar método" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Efectivo</SelectItem>
+                <SelectItem value="2">Transferencia</SelectItem>
+                <SelectItem value="3">Tarjeta</SelectItem>
+                <SelectItem value="4">Cheque</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
-          {/* Archivo */}
+          <div>
+            <Label>Estado del pago</Label>
+            <Select onValueChange={setEstadoPagoId} value={estadoPagoId || undefined}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">En Proceso</SelectItem>
+                <SelectItem value="2">Completado</SelectItem>
+                <SelectItem value="3">Anulado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="archivo">Boleta (PDF/JPG/PNG) — máximo 10MB</Label>
             <Input
